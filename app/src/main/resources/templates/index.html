@@ -2,12 +2,24 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Home Page</title>
+    <title>Amazing Cakes</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
-    <h1>Welcome to our Hotel Management Service!  </h1>
-    <span th:text="'Hello, ' + ${username} + '!'"></span>
-</body>
+    <div th:replace="~{header :: header}"></div>
 
+    <div class="container mt-4">
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to Amazing Cakes!  <span th:if="${user}" th:text="${user.username}">Guest</span>  </h1>
+            <p class="lead">Where sweetness meets perfection.</p>
+            <hr class="my-4">
+            <p>Find the perfect cake for any occasion and book it in minutes.</p>
+            <a class="btn btn-primary btn-lg" href="#" role="button">Book Now</a>
+        </div>
+    </div>
+    <div th:replace="~{footer :: footer}"></div>
+</body>
 </html>

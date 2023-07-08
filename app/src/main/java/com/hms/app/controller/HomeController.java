@@ -6,65 +6,102 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.hms.app.dto.User;
+import com.hms.app.entity.Contact;
+import com.hms.app.entity.User;
 import com.hms.app.repo.UserRepository;
+import com.hms.app.service.ContactService;
+import com.hms.app.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class HomeController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ContactService contactService;
 
-    @Autowired
-    public HomeController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public HomeController(UserService userService, ContactService contactService) {
+        this.userService = userService;
+        this.contactService = contactService;
     }
 
     @GetMapping("/")
-    public String index() {
+    public String index(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user"); // Retrieve the user from the session
+        model.addAttribute("user", user);
         return "index";
     }
 
     @GetMapping("/login")
-    public String showLoginForm(Model model) {
-        model.addAttribute("user", new User());
+    public String showLoginForm(Model model,HttpServletRequest request) {
+        model.addAttribute("userLogin", new User());
+        model.addAttribute("currentURI", request.getRequestURI());
         return "login";
     }
 
-    @PostMapping("/login")
-    public String submitLoginForm(@ModelAttribute User user, Model model) {
-        com.hms.app.entity.User existingUser = userRepository.findByUsername(user.getUsername());
+    @PostMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate(); // Remove all session attributes
+        return "redirect:/";
+    }
 
-        if (existingUser != null && existingUser.getPassword().equals(user.getPassword())) {
-            model.addAttribute("username", user.getUsername());
-            return "index";
+    @PostMapping("/login")
+    public String submitLoginForm(@ModelAttribute User user, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        User successfulLogin = userService.login(user.getUsername(), user.getPassword());
+        if (successfulLogin != null) {
+            // Login successful, redirect to home page
+            session.setAttribute("user", successfulLogin);
+            return "redirect:/?loggedin";
         } else {
-            // User does not exist or entered password is incorrect
-            model.addAttribute("error", "Invalid username or password");
-            return "login";
+            redirectAttributes.addFlashAttribute("error", "Invalid username or password");
+            return "redirect:/login?error";
         }
     }
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("user", new User());
+    public String showRegistrationForm(Model model,HttpSession session) {
+        User user = (User) session.getAttribute("user"); // Retrieve the user from the session
+        model.addAttribute("user", user);
         return "register";
     }
 
     @PostMapping("/register")
     public String submitRegistrationForm(@ModelAttribute User user) {
         // Check if user already exists
-        com.hms.app.entity.User existingUser = userRepository.findByUsername(user.getUsername());
-        if (existingUser != null) {
-            // User already exists, return error
-            return "register";
+        User saveUser = userService.registerUser(user.getUsername(), user.getPassword(), user.getEmail());
+
+        if (saveUser == null) {
+            // User already exists, return to registration page with error
+            return "redirect:/register?error";
         }
 
-        // User doesn't exist, save new user
-        com.hms.app.entity.User newUser = new com.hms.app.entity.User();
-        newUser.setUsername(user.getUsername());
-        newUser.setPassword(user.getPassword());
-        userRepository.save(newUser);
-        return "login";
+        // Registration successful, redirect to login page
+        return "redirect:/login?registered";
     }
+
+    @GetMapping("/contact")
+    public String contact(Model model,HttpSession session) {
+        User user = (User) session.getAttribute("user"); // Retrieve the user from the session
+        model.addAttribute("user", user);
+        return "contact";
+    }
+
+    @PostMapping("/contact")
+    public String submitForm(@RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam("message") String message) {
+        Contact contact = new Contact();
+        contact.setName(name);
+        contact.setEmail(email);
+        contact.setMessage(message);
+        contactService.saveContact(contact);
+
+        return "redirect:/contact?success";
+    }
+
 }

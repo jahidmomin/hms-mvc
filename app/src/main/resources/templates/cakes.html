@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Our Cakes - Amazing Cakes</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div th:replace="~{header :: header}"></div>
+    <div class="container mt-4">
+        <h1>Our Cakes</h1>
+        <div class="row">
+            <!-- Placeholder for the cake items -->
+            <div class="col-md-3" th:each="cake : ${cakes}">
+                <div class="card">
+                    <img class="card-img-top" th:src="${cake.imageURL}" alt="Cake image" style="height:200px;width:200px">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${cake.name}">Cake Name</h5>
+                        <p class="card-text" th:text="${cake.description}">Cake Description</p>
+                        <a href="#" class="btn btn-primary">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{footer :: footer}"></div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

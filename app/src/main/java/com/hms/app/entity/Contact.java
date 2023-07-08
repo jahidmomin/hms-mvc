@@ -8,17 +8,12 @@ import lombok.Data;
 
 @Entity
 @Data
-public class User {
-
+public class Contact {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
-    private String username;
-
-    private String password;
-
+    private String name;
     private String email;
+    private String message;
 
-    // standard getters and setters
 }
